@@ -9,12 +9,14 @@ import numpy as np
 class DeepQNetwork(nn.Module):
   def __init__(self, ALPHA):
     super(DeepQNetwork, self).__init__()
+    # 1 - grayscale
     self.conv1 = nn.Conv2d(1,   32, 8, stride=4, padding=1)
     self.conv2 = nn.Conv2d(32,  64, 4, stride=2)
     self.conv3 = nn.Conv2d(64, 128, 3)
     # self.fc1 = nn.Linear(128 * 23 * 16, 512)
     self.fc1 = nn.Linear(128 * 19 * 8, 512)
-    self.fc2 = nn.Linear(         512, 6) # 6 -actions
+    # 6 -actions
+    self.fc2 = nn.Linear(512, 6)
     # self.optimizer = optim.SGD(self.parameters(), lr=self.ALPHA, momentum=0.9)
     self.optimizer = optim.RMSprop(self.parameters(), lr=ALPHA)
     self.loss = nn.MSELoss()
@@ -23,13 +25,13 @@ class DeepQNetwork(nn.Module):
 
   # observation - sequence of frames, grey scale and 4 frames
   def forward(self, observation):
-    print("observation", observation)
+    # print("observation", len(observation))
     observation = T.Tensor(observation).to(self.device)
     # observation = T.Tensor(np.array(observation), dtype=T.uint8).to(self.device)
 
     # observation = observation.view(-1, 3, 210, 160).to(self.device)
     # openai gym image height x width x channels. But conv1 expects channel to come first.
-    # reshape the array to accomodate that (1 channel, 185, 95 incth)
+    # reshape the array to accomodate that (1 channel, 185, 95 intch)
     observation = observation.view(-1, 1, 185, 95) 
     observation = F.relu(self.conv1(observation))
     observation = F.relu(self.conv2(observation))
@@ -39,6 +41,7 @@ class DeepQNetwork(nn.Module):
     observation = observation.view(-1, 128 * 19 * 8)
     observation = F.relu(self.fc1(observation))
     actions = self.fc2(observation)
+    # Q value for each of the actions
     return actions
 
 class Agent(object):
@@ -61,7 +64,9 @@ class Agent(object):
     self.memory = []
     self.memCntr = 0
     self.replace_target_cnt = replace
+    # Agents estimate of current states
     self.Q_eval = DeepQNetwork(alpha)
+    # Agents estimate of successive states
     self.Q_next = DeepQNetwork(alpha)
 
   def storeTransition(self, state, action, reward, state_):
@@ -95,6 +100,7 @@ class Agent(object):
     miniBatch = self.memory[memStart : memStart + batch_size]
     memory = np.array(miniBatch, dtype=object)
 
+    # evalute and find value of current and next state
     # convert to list because memory is an array of np objets
     Qpred = self.Q_eval.forward(list(memory[:, 0][:])).to(self.Q_eval.device)
     Qnext = self.Q_eval.forward(list(memory[:, 3][:])).to(self.Q_eval.device)
@@ -102,6 +108,8 @@ class Agent(object):
     # batch_size x actions
     maxA = T.argmax(Qnext, dim=1).to(self.Q_eval.device)
     rewards = T.Tensor(list(memory[:, 2])).to(self.Q_eval.device)
+    # Qpred - Value of current set of states
+    # Qtarget - Max action for next successive state
     Qtarget = Qpred
     Qtarget[:, maxA] = rewards + self.GAMMA * T.max(Qnext[1])
 

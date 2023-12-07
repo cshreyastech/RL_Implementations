@@ -16,9 +16,15 @@ if __name__ == '__main__':
     while not done:
       # 0 no action, 1 fire, 2 move right, 3 move left, 4 move right fire, 5 move left fire
       action = env.action_space.sample()
+      """
+      observation_ - (210, 160, 3)
+      reward - float
+      done - bool
+      info - dict {'ale.lives': 3}
+      """
       observation_, reward, done, info = env.step(action)
       if done and info['ale.lives'] == 0:
-        reard = -100
+        reward = -100
       brain.storeTransition(np.mean(observation[15:200, 30:125], axis=2), action, reward,
                           np.mean(observation_[15:200, 30:125], axis=2))
       observation = observation_

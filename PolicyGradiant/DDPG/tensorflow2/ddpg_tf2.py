@@ -1,3 +1,78 @@
+# https://www.youtube.com/watch?v=4jh32CvwKYw&list=PL-9x0_FO_lgmP3TtVCD4X1U9oSalSuI1o&index=13
+"""
+DDPG uses innovations from Q learning
+It uses replay memory. Instead of just learning from latest transition that the agent experienced, 
+its going to keep track of the sum total of its experiences and randomly sample that memory at each
+time step to get some batch of memories to update the weights of its deep neural networks.
+
+The other innovation is use of target networks.
+In Q learning we got to determine the 
+1) action to take and 
+2) then a network to determine the value of that action. 
+
+The value is used to update the weights of the deep neural network.
+
+Using the same network will make the training unstable as its chassing the tail as its a fast 
+moving network as at each time step those weights are getting updated and so the evaluation 
+of similar states.
+
+Solution to this is to keep 2 networks. 
+1) Value: online network to choose actions at each time 
+2) Target: Evaluate the values of the action when performing the update for your deep neural network.
+
+In this case we will be doing hard update of the target network after every 1000 steps. Its a 
+hyper parameter of your agent. You would take the network parametes from the online network and copy
+them to the target network. This is called the hard update.
+
+DDPG does a soft copy of the target networks. It means we will be doing some multiplicative constant
+for our update and we're going to be using a new hyper parameter called tau which is going to be a 
+very small number of the order 0.001.
+
+
+We will have more than one target network because DDPG is a Actor-Critic method.
+
+Actor: What to do with what ever state we pass into it. 
+Ouptputs action values rather than probabilities.
+
+Policy - is a probability distribution of an action. What is the propabilities of any action from
+the action space given a state or a set of states.
+
+
+Critic : Evaluate State and Acton pairs. Given the state, the action we took we good or bad.
+TargetActor
+TargetCritic
+
+
+deterministic - DDPG outputs action values themselfs. Pass in one state over and over again,
+I will get the same action value every singe time.
+
+This leads to explore axploit dilemma which is a fundamental problem in all RL algorithms.
+The agent taking off optimial actions to explore the world is called explore-exploit dilemma.
+
+Taking off optimial action is called exploration. Taking optimal action is called exploitation. 
+As this is eploiting best known action.
+
+Solution is to take the output of the Actor network and add some extra noise to it.
+Here we are using simple gaussian noise.
+
+Update role for actor network:
+ - Randomly sample states from memory
+ - Use actor to determine actions for those states
+ - Plug those actions into critic and get the value
+ - Take the gradient of critic network w.r.t the actor network params. This can be done
+    as they are coupled based on the selections of the actions based on the actor network.
+
+Update role for critic network:
+  - Update critc by minimizing the loss. 
+  This is the mean squared error between target value(yi) and Q for current state and action.
+  - Randomly sample states, new states, actions, rewards from memory
+  - Use target action to determine actions for new states
+  - Plug those actions into target critic to get target y * gamma + reward for that time step
+    which is sampled from memory. That is the target, the value you want to shift the estimates
+    for the critic towards
+  - Plug states, actions into critic (that is the actions the agent actually took sampled from
+    memory) and take diff with target. Apply this to the MSLoss
+"""
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras

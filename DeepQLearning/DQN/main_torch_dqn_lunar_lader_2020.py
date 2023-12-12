@@ -2,6 +2,9 @@ import gym
 from simple_dqn_torch_2020 import Agent
 from utils import plotLearning
 import numpy as np
+import sys
+sys.path.insert(1, '../')
+from utils import plotLearning
 
 if __name__ == '__main__':
   env = gym.make("LunarLander-v2")

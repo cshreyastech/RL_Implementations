@@ -1,0 +1,15 @@
+SARSA
+- Type of temporal difference learning -> dont wait for end of episode to learn
+- Model free - you dont need know the full model af the environment. That is you dont know the state-trasition probabilities.
+- On policy control algorithm
+- Bootstrapping - use estimates to make more estimates
+
+Initialize alpha(learning rate)
+Initialize Q(s, a)
+Initialize S
+Choose A(s) using epsilon greedy from Q
+Loop
+  - Take action A, get teward, S'
+  - Choose A'(S') using epsilon greedy from Q
+  - Q(s,a) -> Q(s,a) + alpha[R + gamma * Q(s', a') - Q(s, a)]
+  - S -> S', A -> A'

@@ -55,7 +55,7 @@ if __name__ == '__main__':
             for dot2 in range(n_discretize + 1):
               states.append((c1, s1, c2, s2, dot1, dot2))
 
-  load = True
+  load = False
 
   if load == False:
     Q = {}
